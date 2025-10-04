@@ -87,6 +87,9 @@ int main(int argc, char *argv[]) {
 
 	printf("Using %lu threads\n", total_thread_count);
 
+	/* Begin timing. */
+	const clock_t start_time = clock();
+
 	/* Create an empty results array */
 	uint_least64_t total_results[2];
 	memset(&total_results, 0, sizeof total_results);
@@ -104,17 +107,21 @@ int main(int argc, char *argv[]) {
 
 	/* Wait for calculations to complete (kernel code is non-blocking) */
 	checkError(cudaDeviceSynchronize());
-
+	
 	/* Combine all kernel results into the host array */
 	for (size_t i = 0; i < total_thread_count; ++i) ++total_results[thread_counters[i] - 1];
-
+	
 	/* Free malloc'd counters */
 	checkError(cudaFree(thread_counters));
 
-	/* Print overall counters results and pi from points ratio. */
-	printf("Points results:\n  %lu inside\n  %lu outside\nPi approximation: %f\n",
+	/* End timing. */
+	const clock_t end_time = clock();
+
+	/* Print overall results and pi from points ratio. */
+	printf("Points results:\n  %lu inside\n  %lu outside\nPi approximation: %f\nTime taken: %fs\n",
 		total_results[1], total_results[0],
-		(4.0 * (double)total_results[1]) / (double)(total_results[0] + total_results[1])
+		(4.0 * (double)total_results[1]) / (double)(total_results[0] + total_results[1]),
+		(double)(end_time - start_time) / CLOCKS_PER_SEC
 	);
 
 	return EXIT_SUCCESS;

@@ -56,7 +56,7 @@ thread_func_t approximate_pi_mcarlo(thread_arg_t results_array);
 int main(int argc, char *argv[]) {
 	/* Check for the correct number of arguments. */
 	if (argc != 3) {
-		fprintf(stderr, "Usage: %s num_points num_threads\n", *argv);
+		fprintf(stderr, "Usage: %s points_per_thread num_threads\n", *argv);
 		return EXIT_FAILURE;
 	}
 
@@ -66,6 +66,9 @@ int main(int argc, char *argv[]) {
 	counter_t thread_results[num_threads][2]; /* Create empty 'results' arrays for each thread to work on. */
 	memset(thread_results, 0, sizeof(thread_results));
 	
+	/* Begin timing. */
+	const clock_t start_time = clock();
+
 	/* Create all of the other threads to work on their own section of the result arrays. */
 	#if num_threads > 1
 	thread_id_t threads[num_threads - 1];
@@ -87,10 +90,14 @@ int main(int argc, char *argv[]) {
 	}
 	#endif
 
+	/* End timing. */
+	const clock_t end_time = clock();
+
 	/* Print overall counters results and pi from points ratio. */
-	printf("Points results:\n  %lu inside\n  %lu outside\nPi approximation: %f\n",
+	printf("Points results:\n  %lu inside\n  %lu outside\nPi approximation: %f\nTime taken: %fs\n",
 		local_results[1], local_results[0],
-		(4.0 * (double)local_results[1]) / (double)(local_results[0] + local_results[1])
+		(4.0 * (double)local_results[1]) / (double)(local_results[0] + local_results[1]),
+		(double)(end_time - start_time) / CLOCKS_PER_SEC
 	);
 
 	return 0;

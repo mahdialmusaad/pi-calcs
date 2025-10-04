@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 /* Types to use for storing calculations. */
 typedef uint_least64_t pi_uint;
@@ -52,10 +53,17 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	} 
 
+	/* Start timer. */
+	const clock_t start_time = clock();
+
 	/* Calculate pi and output the result. */
 	const result_flts res = chudnovsky_binarysplit(0, (pi_uint)((pi_flt)digits / 14.181647462725477) + (pi_uint)(1U));
 	const pi_uint pi = ((res.Qab * 426880.0 * sqrt(10005.0 * pow(10.0, (double)digits))) / res.Tab);
-	printf("Pi approximation: %" PRIu64 "\n", pi);
+	
+	/* End timer. */
+	const clock_t end_time = clock();
+	
+	printf("Pi approximation: %" PRIu64 "\nTime taken: %fs\n", pi, (double)(end_time - start_time) / CLOCKS_PER_SEC);
 
 	return EXIT_SUCCESS;
 }
