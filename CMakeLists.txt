@@ -1,0 +1,46 @@
+cmake_minimum_required(VERSION 3.10)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+project(pi_calcs LANGUAGES C CXX CUDA)
+
+set(CMAKE_VERBOSE_MAKEFILE 0)
+set(CMAKE_SUPPRESS_REGENERATION TRUE)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/execs)
+
+find_library(math_lib m)
+find_library(threads_lib pthread)
+set(link_libs ${LINK_LIBRARIES})
+
+if(math_lib)
+	set(link_libs ${link_libs} m)
+endif()
+if(threads_lib)
+	set(link_libs ${link_libs} pthread)
+endif()
+
+if(MSVC)
+	set(${CMAKE_C_FLAGS} /W3 /O2)
+else()
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Ofast -Wall -Wextra -pedantic -std=c99")
+endif()
+
+file(GLOB c_sources *.c)
+foreach(src_file ${c_sources})
+	get_filename_component(curr_exec ${src_file} NAME_WE)
+	add_executable(${curr_exec} ${src_file})
+	target_link_libraries(${curr_exec} PUBLIC ${link_libs})
+endforeach()
+
+file(GLOB cuda_sources *.cu)
+foreach(src_file ${cuda_sources})
+	get_filename_component(curr_exec ${src_file} NAME_WE)
+	add_executable(${curr_exec} ${src_file})
+	target_compile_features(${curr_exec} PUBLIC cxx_std_11)
+	target_compile_features(${curr_exec} PUBLIC cuda_std_11)
+	set_target_properties(${curr_exec} PROPERTIES CUDA_ARCHITECTURES native)
+	set_target_properties(${curr_exec} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+	if(APPLE)
+		set_target_properties(${curr_exec} PROPERTIES BUILD_RPATH ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+	endif()
+endforeach()
